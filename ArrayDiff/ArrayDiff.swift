@@ -13,20 +13,20 @@ public struct ArrayDiff {
 	
 	/// Returns nil if the item was inserted
 	public func oldIndexForNewIndex(index: Int) -> Int? {
-		if insertedIndexes.containsIndex(index) { return nil }
+        if insertedIndexes.contains(index) { return nil }
 		
 		var result = index
-		result -= insertedIndexes.countOfIndexesInRange(NSMakeRange(0, index))
-		result += removedIndexes.countOfIndexesInRange(NSMakeRange(0, result + 1))
+        result -= insertedIndexes.countOfIndexes(in: NSMakeRange(0, index))
+        result += removedIndexes.countOfIndexes(in: NSMakeRange(0, result + 1))
 		return result
 	}
 	
 	/// Returns nil if the item was deleted
 	public func newIndexForOldIndex(index: Int) -> Int? {
-		if removedIndexes.containsIndex(index) { return nil }
+        if removedIndexes.contains(index) { return nil }
 		
 		var result = index
-		let deletedBefore = removedIndexes.countOfIndexesInRange(NSMakeRange(0, index))
+        let deletedBefore = removedIndexes.countOfIndexes(in: NSMakeRange(0, index))
 		result -= deletedBefore
 		var insertedAtOrBefore = 0
 		for i in insertedIndexes {
@@ -54,22 +54,22 @@ public struct ArrayDiff {
 
 public extension Array {
 	
-	public func diff(other: Array<Element>, elementsAreEqual: ((Element, Element) -> Bool)) -> ArrayDiff {
+    func diff(other: Array<Element>, elementsAreEqual: ((Element, Element) -> Bool)) -> ArrayDiff {
 		var lengths: [[Int]] = Array<Array<Int>>(
-			count: count + 1,
-			repeatedValue: Array<Int>(
-				count: other.count + 1,
-				repeatedValue: 0)
+            unsafeUninitializedCapacity: count + 1,
+            initializingWithunsafeUninitializedCapacityinitializingWith: Array<Int>(
+                unsafeUninitializedCapacity: other.count + 1,
+                initializingWith: 0)
 		)
-		
-		for i in (0...count).reverse() {
-			for j in (0...other.count).reverse() {
+
+		for i in (0...count).reversed() {
+			for j in (0...other.count).reversed() {
 				if i == count || j == other.count {
 					lengths[i][j] = 0
 				} else if elementsAreEqual(self[i], other[j]) {
 					lengths[i][j] = 1 + lengths[i+1][j+1]
 				} else {
-					lengths[i][j] = max(lengths[i+1][j], lengths[i][j+1])
+                    lengths[i][j] = Swift.max(lengths[i+1][j], lengths[i][j+1])
 				}
 			}
 		}
@@ -78,7 +78,7 @@ public extension Array {
 
 		while i < count && j < other.count {
 			if elementsAreEqual(self[i], other[j]) {
-				commonIndexes.addIndex(i)
+                commonIndexes.add(i)
 				i += 1
 				j += 1
 			} else if lengths[i+1][j] >= lengths[i][j+1] {
@@ -88,8 +88,8 @@ public extension Array {
 			}
 		}
 		
-		let removedIndexes = NSMutableIndexSet(indexesInRange: NSMakeRange(0, count))
-		removedIndexes.removeIndexes(commonIndexes)
+        let removedIndexes = NSMutableIndexSet(indexesIn: NSMakeRange(0, count))
+        removedIndexes.remove(commonIndexes as IndexSet)
 		
 		let commonObjects = self[commonIndexes]
 		let addedIndexes = NSMutableIndexSet()
@@ -101,7 +101,7 @@ public extension Array {
 				i += 1
 				j += 1
 			} else {
-				addedIndexes.addIndex(j)
+                addedIndexes.add(j)
 				j += 1
 			}
 		}
@@ -111,7 +111,7 @@ public extension Array {
 }
 
 public extension Array where Element: Equatable {
-	public func diff(other: Array<Element>) -> ArrayDiff {
-		return self.diff(other, elementsAreEqual: { $0 == $1 })
+    func diff(other: Array<Element>) -> ArrayDiff {
+        return self.diff(other: other, elementsAreEqual: { $0 == $1 })
 	}
 }

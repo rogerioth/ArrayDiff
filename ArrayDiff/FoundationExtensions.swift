@@ -4,12 +4,13 @@ import Foundation
 // MARK: NSRange <-> Range<Int> conversion
 
 public extension NSRange {
-	public var range: Range<Int> {
+    var range: Range<Int> {
 		return location..<location+length
 	}
 	
-	public init(range: Range<Int>) {
-		location = range.startIndex
+    init(range: Range<Int>) {
+        self.init()
+        location = range.startIndex
 		length = range.endIndex - range.startIndex
 	}
 }
@@ -23,10 +24,10 @@ public extension NSIndexSet {
 	When reporting changes to table/collection view, you can improve performance by sorting
 	deletes in descending order and inserts in ascending order.
 	*/
-	public func indexPathsInSection(section: Int, ascending: Bool = true) -> [NSIndexPath] {
+    func indexPathsInSection(section: Int, ascending: Bool = true) -> [NSIndexPath] {
 		var result: [NSIndexPath] = []
 		result.reserveCapacity(count)
-		enumerateIndexesWithOptions(ascending ? [] : .Reverse) { index, _ in
+        enumerate(options: ascending ? [] : .reverse) { index, _ in
 			result.append(NSIndexPath(indexes: [section, index], length: 2))
 		}
 		return result
@@ -37,26 +38,26 @@ public extension NSIndexSet {
 
 public extension Array {
 	
-	public subscript (indexes: NSIndexSet) -> [Element] {
+    subscript (indexes: NSIndexSet) -> [Element] {
 		var result: [Element] = []
 		result.reserveCapacity(indexes.count)
-		indexes.enumerateRangesUsingBlock { nsRange, _ in
+        indexes.enumerateRanges { nsRange, _ in
 			result += self[nsRange.range]
 		}
 		return result
 	}
 	
-	public mutating func removeAtIndexes(indexSet: NSIndexSet) {
-		indexSet.enumerateRangesWithOptions(.Reverse) { nsRange, _ in
-			self.removeRange(nsRange.range)
+    mutating func removeAtIndexes(indexSet: NSIndexSet) {
+        indexSet.enumerateRanges(options: .reverse) { nsRange, _ in
+            self.removeSubrange(nsRange.range)
 		}
 	}
 	
-	public mutating func insertElements(newElements: [Element], atIndexes indexes: NSIndexSet) {
+    mutating func insertElements(newElements: [Element], atIndexes indexes: NSIndexSet) {
 		assert(indexes.count == newElements.count)
 		var i = 0
-		indexes.enumerateRangesUsingBlock { range, _ in
-			self.insertContentsOf(newElements[i..<i+range.length], at: range.location)
+        indexes.enumerateRanges { range, _ in
+            self.insert(contentsOf: newElements[i..<i+range.length], at: range.location)
 			i += range.length
 		}
 	}
